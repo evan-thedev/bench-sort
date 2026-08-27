@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bench Sort - Workbench Tidy Game</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header>
+            <h1>Bench Sort</h1>
+            <div class="stats">
+                <span>Level: <span id="level-display">1</span>/8</span>
+                <span>Time: <span id="timer">0.0</span>s</span>
+                <span>Mistakes: <span id="mistakes">0</span></span>
+            </div>
+        </header>
+
+        <div id="game-area">
+            <div id="workbench" class="workbench">
+                <!-- Labeled spots will be generated here -->
+            </div>
+            
+            <div id="messy-pile" class="messy-pile">
+                <!-- Messy parts will be generated here -->
+            </div>
+        </div>
+
+        <div id="message" class="message"></div>
+        
+        <div id="level-complete" class="modal hidden">
+            <div class="modal-content">
+                <h2>Level Complete!</h2>
+                <p>Time: <span id="level-time">0</span>s</p>
+                <p id="level-feedback"></p>
+                <button id="next-level-btn">Next Level</button>
+            </div>
+        </div>
+
+        <div id="game-over" class="modal hidden">
+            <div class="modal-content">
+                <h2 id="game-over-title">Game Complete!</h2>
+                <p id="game-over-message"></p>
+                <button id="restart-btn">Play Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
