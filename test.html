@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bench Sort - Tests</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+        }
+        .test {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+        .test.pass {
+            border-left-color: #4caf50;
+        }
+        .test.fail {
+            border-left-color: #ff6b6b;
+        }
+        .test-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .test-result {
+            color: #666;
+        }
+        .summary {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: bold;
+            text-align: center;
+        }
+        .summary.pass {
+            background: #4caf50;
+            color: white;
+        }
+        .summary.fail {
+            background: #ff6b6b;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Bench Sort Test Suite</h1>
+    <div id="test-results"></div>
+    <div id="summary"></div>
+
+    <script src="game.js"></script>
+    <script>
+        class TestRunner {
+            constructor() {
+                this.tests = [];
+                this.passed = 0;
+                this.failed = 0;
+            }
+
+            test(name, fn) {
+                this.tests.push({ name, fn });
+            }
+
+            async run() {
+                const resultsContainer = document.getElementById('test-results');
+                const summaryContainer = document.getElementById('summary');
+
+                for (const test of this.tests) {
+                    try {
+                        await test.fn();
+                        this.passed++;
+                        this.renderTest(resultsContainer, test.name, true, 'Pass');
+                    } catch (error) {
+                        this.failed++;
+                        this.renderTest(resultsContainer, test.name, false, error.message);
+                    }
+                }
+
+                this.renderSummary(summaryContainer);
+            }
+
+            renderTest(container, name, passed, message) {
+                const testDiv = document.createElement('div');
+                testDiv.className = `test ${passed ? 'pass' : 'fail'}`;
+                
+                const testName = document.createElement('div');
+                testName.className = 'test-name';
+                testName.textContent = `${passed ? '✓' : '✗'} ${name}`;
+                
+                const testResult = document.createElement('div');
+                testResult.className = 'test-result';
+                testResult.textContent = message;
+                
+                testDiv.appendChild(testName);
+                testDiv.appendChild(testResult);
+                container.appendChild(testDiv);
+            }
+
+            renderSummary(container) {
+                const total = this.passed + this.failed;
+                const summaryDiv = document.createElement('div');
+                summaryDiv.className = `summary ${this.failed === 0 ? 'pass' : 'fail'}`;
+                summaryDiv.textContent = `Tests: ${this.passed}/${total} passed`;
+                container.appendChild(summaryDiv);
+            }
+
+            assert(condition, message) {
+                if (!condition) {
+                    throw new Error(message || 'Assertion failed');
+                }
+            }
+
+            assertEqual(actual, expected, message) {
+                if (actual !== expected) {
+                    throw new Error(message || `Expected ${expected}, got ${actual}`);
+                }
+            }
+
+            assertNotNull(value, message) {
+                if (value === null || value === undefined) {
+                    throw new Error(message || 'Value is null or undefined');
+                }
+            }
+        }
+
+        const runner = new TestRunner();
+
+        // Test: LEVELS array is defined and has 8 levels
+        runner.test('LEVELS array contains 8 levels', () => {
+            runner.assert(typeof LEVELS !== 'undefined', 'LEVELS is not defined');
+            runner.assertEqual(LEVELS.length, 8, 'Should have exactly 8 levels');
+        });
+
+        // Test: Each level has parts and spots
+        runner.test('Each level has parts and spots arrays', () => {
+            LEVELS.forEach((level, index) => {
+                runner.assert(Array.isArray(level.parts), `Level ${index} parts is not an array`);
+                runner.assert(Array.isArray(level.spots), `Level ${index} spots is not an array`);
+                runner.assertEqual(level.parts.length, level.spots.length, 
+                    `Level ${index} parts and spots length mismatch`);
+            });
+        });
+
+        // Test: FAIL_MESSAGES array exists
+        runner.test('FAIL_MESSAGES array is defined', () => {
+            runner.assert(typeof FAIL_MESSAGES !== 'undefined', 'FAIL_MESSAGES is not defined');
+            runner.assert(FAIL_MESSAGES.length > 0, 'FAIL_MESSAGES is empty');
+        });
+
+        // Test: SUCCESS_MESSAGES array exists
+        runner.test('SUCCESS_MESSAGES array is defined', () => {
+            runner.assert(typeof SUCCESS_MESSAGES !== 'undefined', 'SUCCESS_MESSAGES is not defined');
+            runner.assert(SUCCESS_MESSAGES.length > 0, 'SUCCESS_MESSAGES is empty');
+        });
+
+        // Test: Game class is defined
+        runner.test('Game class is defined', () => {
+            runner.assert(typeof Game !== 'undefined', 'Game class is not defined');
+        });
+
+        // Test: Game can be instantiated
+        runner.test('Game can be instantiated', () => {
+            const game = new Game();
+            runner.assertNotNull(game, 'Game instance is null');
+        });
+
+        // Test: Game has required methods
+        runner.test('Game has required methods', () => {
+            const game = new Game();
+            runner.assert(typeof game.init === 'function', 'init method missing');
+            runner.assert(typeof game.loadLevel === 'function', 'loadLevel method missing');
+            runner.assert(typeof game.createSpot === 'function', 'createSpot method missing');
+            runner.assert(typeof game.createPart === 'function', 'createPart method missing');
+            runner.assert(typeof game.shuffle === 'function', 'shuffle method missing');
+        });
+
+        // Test: Game starts at level 0
+        runner.test('Game starts at level 0', () => {
+            const game = new Game();
+            runner.assertEqual(game.currentLevel, 0, 'Current level should be 0');
+        });
+
+        // Test: Shuffle function works
+        runner.test('Shuffle function randomizes array', () => {
+            const game = new Game();
+            const original = [1, 2, 3, 4, 5];
+            const shuffled = game.shuffle(original);
+            
+            runner.assertEqual(shuffled.length, original.length, 'Shuffled array length mismatch');
+            runner.assert(original.every(item => shuffled.includes(item)), 
+                'Shuffled array missing elements');
+        });
+
+        // Test: Level progression
+        runner.test('Levels have increasing complexity', () => {
+            let prevLength = 0;
+            LEVELS.forEach((level, index) => {
+                if (index > 0) {
+                    runner.assert(level.parts.length >= prevLength, 
+                        'Levels should maintain or increase in item count');
+                }
+                prevLength = level.parts.length;
+            });
+        });
+
+        // Test: Level 1 has 3 items (should be ~8 seconds)
+        runner.test('Level 1 has appropriate complexity', () => {
+            runner.assertEqual(LEVELS[0].parts.length, 3, 
+                'First level should have 3 items for ~8 second completion');
+        });
+
+        // Test: Last level has most items
+        runner.test('Last level has most items', () => {
+            const lastLevel = LEVELS[LEVELS.length - 1];
+            runner.assert(lastLevel.parts.length >= 6, 
+                'Last level should have at least 6 items');
+        });
+
+        // Run all tests
+        runner.run();
+    </script>
+</body>
+</html>
