@@ -65,11 +65,19 @@ class Game {
         this.startTime = null;
         this.timerInterval = null;
         this.draggedPart = null;
+        this.touchDragClone = null;
         
         this.init();
     }
 
     init() {
+        const nextLevelBtn = document.getElementById('next-level-btn');
+        const restartBtn = document.getElementById('restart-btn');
+        
+        if (!nextLevelBtn || !restartBtn) {
+            return;
+        }
+        
         this.setupEventListeners();
         this.loadLevel();
     }
@@ -142,6 +150,10 @@ class Game {
 
         part.addEventListener('dragstart', (e) => this.handleDragStart(e));
         part.addEventListener('dragend', (e) => this.handleDragEnd(e));
+        
+        part.addEventListener('touchstart', (e) => this.handleTouchStart(e));
+        part.addEventListener('touchmove', (e) => this.handleTouchMove(e));
+        part.addEventListener('touchend', (e) => this.handleTouchEnd(e));
 
         return part;
     }
@@ -182,14 +194,103 @@ class Game {
         const spotName = spot.dataset.name;
 
         if (partName === spotName) {
-            this.placePartCorrectly(spot);
+            this.placePartCorrectly(spot, this.draggedPart);
         } else {
             this.placedPartIncorrectly(spot);
         }
     }
 
-    placePartCorrectly(spot) {
-        const part = this.draggedPart;
+    handleTouchStart(e) {
+        e.preventDefault();
+        const part = e.currentTarget;
+        
+        if (part.classList.contains('in-spot')) {
+            return;
+        }
+        
+        this.draggedPart = part;
+        part.classList.add('dragging');
+        
+        const clone = part.cloneNode(true);
+        clone.className = 'part touch-drag-clone';
+        clone.style.position = 'fixed';
+        clone.style.pointerEvents = 'none';
+        clone.style.zIndex = '10000';
+        clone.style.opacity = '0.8';
+        
+        const touch = e.touches[0];
+        const rect = part.getBoundingClientRect();
+        clone.style.width = rect.width + 'px';
+        clone.style.left = (touch.clientX - rect.width / 2) + 'px';
+        clone.style.top = (touch.clientY - rect.height / 2) + 'px';
+        
+        document.body.appendChild(clone);
+        this.touchDragClone = clone;
+    }
+
+    handleTouchMove(e) {
+        e.preventDefault();
+        
+        if (!this.touchDragClone) {
+            return;
+        }
+        
+        const touch = e.touches[0];
+        const rect = this.touchDragClone.getBoundingClientRect();
+        this.touchDragClone.style.left = (touch.clientX - rect.width / 2) + 'px';
+        this.touchDragClone.style.top = (touch.clientY - rect.height / 2) + 'px';
+        
+        const spots = document.querySelectorAll('.spot');
+        spots.forEach(spot => spot.classList.remove('drag-over'));
+        
+        const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (elementUnderTouch) {
+            const spot = elementUnderTouch.closest('.spot');
+            if (spot && !spot.classList.contains('filled')) {
+                spot.classList.add('drag-over');
+            }
+        }
+    }
+
+    handleTouchEnd(e) {
+        e.preventDefault();
+        
+        if (!this.draggedPart) {
+            return;
+        }
+        
+        this.draggedPart.classList.remove('dragging');
+        
+        if (this.touchDragClone) {
+            const touch = e.changedTouches[0];
+            const elementUnderTouch = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            if (elementUnderTouch) {
+                const spot = elementUnderTouch.closest('.spot');
+                
+                if (spot && !spot.classList.contains('filled')) {
+                    spot.classList.remove('drag-over');
+                    
+                    const partName = this.draggedPart.dataset.name;
+                    const spotName = spot.dataset.name;
+                    
+                    if (partName === spotName) {
+                        this.placePartCorrectly(spot, this.draggedPart);
+                    } else {
+                        this.placedPartIncorrectly(spot);
+                    }
+                }
+            }
+            
+            document.body.removeChild(this.touchDragClone);
+            this.touchDragClone = null;
+        }
+        
+        document.querySelectorAll('.spot').forEach(spot => spot.classList.remove('drag-over'));
+        this.draggedPart = null;
+    }
+
+    placePartCorrectly(spot, part) {
         part.classList.add('in-spot');
         part.draggable = false;
         

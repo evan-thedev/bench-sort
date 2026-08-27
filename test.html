@@ -58,6 +58,26 @@
     <div id="test-results"></div>
     <div id="summary"></div>
 
+    <!-- Hidden DOM stubs for game.js initialization -->
+    <div style="display: none;">
+        <div id="workbench"></div>
+        <div id="messy-pile"></div>
+        <div id="message"></div>
+        <div id="level-display"></div>
+        <div id="timer"></div>
+        <div id="mistakes"></div>
+        <div id="level-complete" class="hidden">
+            <div id="level-time"></div>
+            <div id="level-feedback"></div>
+            <button id="next-level-btn"></button>
+        </div>
+        <div id="game-over" class="hidden">
+            <div id="game-over-title"></div>
+            <div id="game-over-message"></div>
+            <button id="restart-btn"></button>
+        </div>
+    </div>
+
     <script src="game.js"></script>
     <script>
         class TestRunner {

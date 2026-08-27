@@ -141,6 +141,10 @@ h1 {
     cursor: default;
 }
 
+.touch-drag-clone {
+    transition: none !important;
+}
+
 .message {
     text-align: center;
     font-size: 1.2em;
